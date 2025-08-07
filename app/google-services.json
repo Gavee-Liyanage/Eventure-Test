@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1080464587926",
+    "project_id": "eventuretest-3cecb",
+    "storage_bucket": "eventuretest-3cecb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1080464587926:android:f17aa9f34ce5c5ceae96b7",
+        "android_client_info": {
+          "package_name": "com.example.eventuretest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBHB5qo7CQPRTnMCEQA93vT7nfVT_BGSf8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#000000</color>
+    <!-- Admin Theme Colors -->
+    <color name="admin_primary">#2196F3</color>
+    <color name="admin_primary_dark">#1976D2</color>
+    <color name="admin_primary_light">#BBDEFB</color>
+    <color name="admin_accent">#FF5722</color>
+    <color name="admin_accent_light">#FFAB91</color>
+    <color name="admin_theme">#FF9823</color>
+
+    <!-- Dashboard Colors -->
+    <color name="admin_card_background">#FFFFFF</color>
+    <color name="admin_card_shadow">#E0E0E0</color>
+    <color name="admin_text_primary">#212121</color>
+    <color name="admin_text_secondary">#757575</color>
+    <color name="admin_divider">#BDBDBD</color>
+
+    <!-- EventList -->
+    <color name="category_default">#9E9E9E</color>
+    <color name="status_upcoming">#2E7D32</color> <!-- darker green -->
+    <color name="status_past">#F44336</color>
+
+    <!-- Status Colors -->
+    <color name="admin_success">#4CAF50</color>
+    <color name="admin_warning">#FF9800</color>
+    <color name="admin_error">#F44336</color>
+    <color name="admin_info">#2196F3</color>
+    <color name="status_active">#49AF4D</color>
+
+    <!-- Event Category Colors -->
+    <color name="category_musical">#9C27B0</color>
+    <color name="category_sports">#4CAF50</color>
+    <color name="category_food">#FF9800</color>
+    <color name="category_art">#E91E63</color>
+
+    <!-- Background Colors -->
+    <color name="admin_background">#F5F5F5</color>
+    <color name="admin_surface">#FFFFFF</color>
+    <color name="admin_overlay">#80000000</color>
+</resources>
