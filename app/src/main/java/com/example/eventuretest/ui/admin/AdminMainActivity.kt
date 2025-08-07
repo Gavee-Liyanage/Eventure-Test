@@ -8,7 +8,7 @@ import android.view.MenuItem
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-
+import com.example.eventuretest.MainActivity
 import com.example.eventuretest.R
 import com.example.eventuretest.databinding.ActivityAdminMainBinding
 import com.example.eventuretest.viewmodels.AdminMainViewModel
@@ -29,52 +29,37 @@ class AdminMainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
-
-        // Click listeners directly in onCreate
-        binding.apply {
-            cardAddEvent.setOnClickListener {
-                Log.d("AdminMain", "Add Event clicked")
-                try {
-                    val intent = Intent(this@AdminMainActivity, AddEventActivity::class.java)
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Log.e("AdminMain", "Error navigating to AddEventActivity", e)
-                    showErrorDialog("Cannot open Add Event screen. Please check if the activity exists.")
-                }
-            }
-
-            cardViewEvents.setOnClickListener {
-                Log.d("AdminMain", "View Events clicked")
-                try {
-                    val intent = Intent(this@AdminMainActivity, EventListActivity::class.java)
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Log.e("AdminMain", "Error navigating to EventListActivity", e)
-                    showErrorDialog("Cannot open Event List screen. Please check if the activity exists.")
-                }
-            }
-
-            cardAnalytics.setOnClickListener {
-                Log.d("AdminMain", "Analytics clicked")
-                // Navigate to analytics screen (implement if needed)
-                // TODO: Implement analytics activity
-            }
-
-            btnRefresh.setOnClickListener {
-                Log.d("AdminMain", "Refresh clicked")
-                viewModel.loadDashboardData()
-            }
-        }
-
+        setupClickListeners()
         observeViewModel()
 
-        // Load dashboard data
         viewModel.loadDashboardData()
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         supportActionBar?.title = "Admin Dashboard"
+    }
+
+    private fun setupClickListeners() {
+        binding.cardAddEvent.setOnClickListener {
+            Log.d("AdminMain", "Add Event clicked")
+            startActivity(Intent(this, AddEventActivity::class.java))
+        }
+
+        binding.cardViewEvents.setOnClickListener {
+            Log.d("AdminMain", "View Events clicked")
+            startActivity(Intent(this, EventListActivity::class.java))
+        }
+
+        binding.cardAnalytics.setOnClickListener {
+            Log.d("AdminMain", "Analytics clicked")
+            // TODO: Implement analytics activity and navigation
+        }
+
+        binding.btnRefresh.setOnClickListener {
+            Log.d("AdminMain", "Refresh clicked")
+            viewModel.loadDashboardData()
+        }
     }
 
     private fun observeViewModel() {
@@ -114,11 +99,11 @@ class AdminMainActivity : AppCompatActivity() {
 
     private fun updateUI(analytics: Map<String, Any>) {
         binding.apply {
-            TotalEvents.text = (analytics["totalEvents"] as? Int)?.toString() ?: "0"
-            ActiveEvents.text = (analytics["activeEvents"] as? Int)?.toString() ?: "0"
-            RecentEvents.text = (analytics["recentEvents"] as? Int)?.toString() ?: "0"
+            TotalEvents.text = (analytics["totalEvents"] as? Number)?.toString() ?: "0"
+            ActiveEvents.text = (analytics["activeEvents"] as? Number)?.toString() ?: "0"
+            RecentEvents.text = (analytics["recentEvents"] as? Number)?.toString() ?: "0"
 
-            val categoryData = analytics["categoryData"] as? Map<String, Int>
+            val categoryData = analytics["categoryData"] as? Map<String, Number>
             categoryData?.let { data ->
                 MusicalCount.text = data["Musical"]?.toString() ?: "0"
                 SportsCount.text = data["Sports"]?.toString() ?: "0"
@@ -144,11 +129,9 @@ class AdminMainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_profile -> {
-                // Navigate to profile screen
                 true
             }
             R.id.action_settings -> {
-                // Navigate to settings screen
                 true
             }
             R.id.action_logout -> {
@@ -165,7 +148,7 @@ class AdminMainActivity : AppCompatActivity() {
             .setMessage("Are you sure you want to logout?")
             .setPositiveButton("Logout") { _, _ ->
                 FirebaseAuth.getInstance().signOut()
-                val intent = Intent()
+                val intent = Intent(this, MainActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
                 finish()

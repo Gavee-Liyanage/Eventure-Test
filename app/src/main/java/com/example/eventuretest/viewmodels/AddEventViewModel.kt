@@ -8,14 +8,16 @@ import androidx.lifecycle.viewModelScope
 import com.example.eventuretest.data.models.Event
 import com.example.eventuretest.data.repository.AdminEventRepository
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AddEventViewModel (
-    firestore: FirebaseFirestore
+@HiltViewModel
+class AddEventViewModel @Inject constructor(
+    private val firestore: FirebaseFirestore
 ) : ViewModel() {
 
     private val repository = AdminEventRepository(firestore)
-
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading

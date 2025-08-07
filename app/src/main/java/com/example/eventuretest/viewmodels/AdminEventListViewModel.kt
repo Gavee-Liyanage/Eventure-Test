@@ -7,14 +7,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.eventuretest.data.models.Event
 import com.example.eventuretest.data.models.EventCategory
 import com.example.eventuretest.data.repository.AdminEventRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Locale
+import javax.inject.Inject
 
-class AdminEventListViewModel(
+@HiltViewModel
+class AdminEventListViewModel @Inject constructor(
     private val repository: AdminEventRepository
 ) : ViewModel() {
-
     private val _events = MutableLiveData<List<Event>>()
     val events: LiveData<List<Event>> = _events
 

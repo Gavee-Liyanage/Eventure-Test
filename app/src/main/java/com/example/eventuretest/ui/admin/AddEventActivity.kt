@@ -12,47 +12,43 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.eventuretest.R
-import com.example.eventuretest.databinding.ActivityAddEventBinding
 import com.example.eventuretest.data.models.Event
 import com.example.eventuretest.data.models.EventCategory
+import com.example.eventuretest.databinding.ActivityAddEventBinding
 import com.example.eventuretest.ui.adapters.ImagePreviewAdapter
-import com.example.eventuretest.viewmodels.AddEventViewModel
-import com.example.eventuretest.utils.EventValidation
 import com.example.eventuretest.utils.DateUtils
+import com.example.eventuretest.viewmodels.AddEventViewModel
 import com.google.android.material.chip.Chip
+import com.google.firebase.Timestamp
+import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
 
+@AndroidEntryPoint
 class AddEventActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddEventBinding
-    private lateinit var viewModel: AddEventViewModel
+    private val viewModel: AddEventViewModel by viewModels()
     private lateinit var imageAdapter: ImagePreviewAdapter
-    private val selectedImages = mutableListOf<Uri>()
+    private val selectedImageUris = mutableListOf<Uri>()
+    private var selectedCategory: String? = null
+    private var selectedDate: Calendar = Calendar.getInstance()
 
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            result.data?.let { intent ->
-                if (intent.clipData != null) {
-                    // Multiple images selected
-                    for (i in 0 until intent.clipData!!.itemCount) {
-                        val imageUri = intent.clipData!!.getItemAt(i).uri
-                        selectedImages.add(imageUri)
-                    }
-                } else {
-                    // Single image selected
-                    intent.data?.let { uri ->
-                        selectedImages.add(uri)
-                    }
+    private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            result.data?.clipData?.let { clipData ->
+                for (i in 0 until clipData.itemCount) {
+                    selectedImageUris.add(clipData.getItemAt(i).uri)
                 }
-                imageAdapter.updateImages(selectedImages)
-                updateImageCountDisplay()
+            } ?: result.data?.data?.let { uri ->
+                selectedImageUris.add(uri)
             }
+            imageAdapter.notifyDataSetChanged()
+            updateImagePreviewVisibility()
         }
     }
 
@@ -62,9 +58,8 @@ class AddEventActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
-        setupViewModel()
-        setupImageRecyclerView()
-        setupEventCategoryChips()
+        setupRecyclerView()
+        setupCategoryChips()
         setupClickListeners()
         observeViewModel()
     }
@@ -77,159 +72,143 @@ class AddEventActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViewModel() {
-        viewModel = ViewModelProvider(this)[AddEventViewModel::class.java]
-    }
-
-    private fun setupImageRecyclerView() {
-        imageAdapter = ImagePreviewAdapter(selectedImages) { position ->
-            selectedImages.removeAt(position)
+    private fun setupRecyclerView() {
+        imageAdapter = ImagePreviewAdapter(selectedImageUris) { position ->
+            selectedImageUris.removeAt(position)
             imageAdapter.notifyItemRemoved(position)
-            updateImageCountDisplay()
+            updateImagePreviewVisibility()
         }
-
         binding.recyclerViewImages.apply {
             layoutManager = LinearLayoutManager(this@AddEventActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = imageAdapter
         }
+        updateImagePreviewVisibility()
     }
 
-    private fun setupEventCategoryChips() {
+    private fun updateImagePreviewVisibility() {
+        val imageCount = selectedImageUris.size
+        binding.recyclerViewImages.visibility = if (imageCount > 0) View.VISIBLE else View.GONE
+        binding.textViewImageCount.text = "$imageCount images selected"
+    }
+
+    private fun setupCategoryChips() {
         EventCategory.values().forEach { category ->
-            val chip = Chip(this)
-            chip.text = category.displayName
-            chip.isCheckable = true
-            chip.tag = category
+            val chip = Chip(this).apply {
+                text = category.displayName
+                isCheckable = true
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        selectedCategory = category.name
+                        clearOtherChips(this)
+                    }
+                }
+            }
             binding.chipGroupCategories.addView(chip)
         }
     }
 
+    private fun clearOtherChips(selectedChip: Chip) {
+        for (i in 0 until binding.chipGroupCategories.childCount) {
+            val chip = binding.chipGroupCategories.getChildAt(i) as Chip
+            if (chip != selectedChip) {
+                chip.isChecked = false
+            }
+        }
+    }
+
     private fun setupClickListeners() {
-        binding.buttonSelectImages.setOnClickListener { openImagePicker() }
         binding.editTextEventDate.setOnClickListener { showDatePicker() }
         binding.editTextEventTime.setOnClickListener { showTimePicker() }
-        binding.buttonSaveEvent.setOnClickListener { validateAndSaveEvent() }
+        binding.buttonSelectImages.setOnClickListener { openImagePicker() }
+        binding.buttonSaveEvent.setOnClickListener { submitEvent() }
         binding.buttonCancel.setOnClickListener { finish() }
     }
 
     private fun observeViewModel() {
-        viewModel.isLoading.observe(this) { isLoading ->
+        viewModel.isLoading.observe(this, Observer { isLoading ->
             binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-            binding.buttonSaveEvent.isEnabled = !isLoading
-        }
+        })
 
-        viewModel.saveResult.observe(this) { success ->
+        viewModel.saveResult.observe(this, Observer { success ->
             if (success) {
-                Toast.makeText(this, "Event added successfully!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Event added successfully!", Toast.LENGTH_LONG).show()
                 finish()
-            } else {
-                Toast.makeText(this, "Failed to add event. Please try again.", Toast.LENGTH_SHORT).show()
             }
-        }
+        })
 
-        viewModel.errorMessage.observe(this) { message ->
-            if (message.isNotEmpty()) {
-                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+        viewModel.errorMessage.observe(this, Observer { error ->
+            if (!error.isNullOrEmpty()) {
+                Toast.makeText(this, "Error: $error", Toast.LENGTH_LONG).show()
             }
-        }
-    }
-
-    private fun openImagePicker() {
-        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
-        imagePickerLauncher.launch(intent)
+        })
     }
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
-        val datePickerDialog = DatePickerDialog(
+        DatePickerDialog(
             this,
             { _, year, month, dayOfMonth ->
-                val selectedDate = Calendar.getInstance()
-                selectedDate.set(year, month, dayOfMonth)
+                selectedDate.set(Calendar.YEAR, year)
+                selectedDate.set(Calendar.MONTH, month)
+                selectedDate.set(Calendar.DAY_OF_MONTH, dayOfMonth)
                 binding.editTextEventDate.setText(DateUtils.formatDate(selectedDate.time))
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
-        )
-        datePickerDialog.datePicker.minDate = System.currentTimeMillis()
-        datePickerDialog.show()
+        ).show()
     }
 
     private fun showTimePicker() {
         val calendar = Calendar.getInstance()
-        val timePickerDialog = TimePickerDialog(
+        TimePickerDialog(
             this,
             { _, hourOfDay, minute ->
-                val selectedTime = Calendar.getInstance()
-                selectedTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
-                selectedTime.set(Calendar.MINUTE, minute)
-                binding.editTextEventTime.setText(DateUtils.formatTime(selectedTime.time))
+                selectedDate.set(Calendar.HOUR_OF_DAY, hourOfDay)
+                selectedDate.set(Calendar.MINUTE, minute)
+                binding.editTextEventTime.setText(DateUtils.formatTime(selectedDate.time))
             },
             calendar.get(Calendar.HOUR_OF_DAY),
             calendar.get(Calendar.MINUTE),
-            false
-        )
-        timePickerDialog.show()
+            true
+        ).show()
     }
 
-    private fun validateAndSaveEvent() {
+    private fun openImagePicker() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+            putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+            type = "image/*"
+        }
+        pickImageLauncher.launch(intent)
+    }
+
+    private fun submitEvent() {
         val eventName = binding.editTextEventName.text.toString().trim()
         val eventDescription = binding.editTextEventDescription.text.toString().trim()
-        val eventDate = binding.editTextEventDate.text.toString().trim()
-        val eventTime = binding.editTextEventTime.text.toString().trim()
         val eventLocation = binding.editTextEventLocation.text.toString().trim()
-        val selectedCategory = getSelectedCategory()
+        val eventDateStr = binding.editTextEventDate.text.toString()
+        val eventTimeStr = binding.editTextEventTime.text.toString()
 
-        val validationResult = EventValidation.validateEventData(
-            name = eventName,
-            description = eventDescription,
-            date = eventDate,
-            time = eventTime,
-            location = eventLocation,
-            imageCount = selectedImages.size
-        )
-
-        if (!validationResult.isValid) {
-            Toast.makeText(this, validationResult.errorMessage, Toast.LENGTH_LONG).show()
+        if (eventName.isEmpty() || eventDescription.isEmpty() || eventLocation.isEmpty() || eventDateStr.isEmpty() || eventTimeStr.isEmpty() || selectedCategory == null) {
+            Toast.makeText(this, "Please fill all fields and select a category", Toast.LENGTH_SHORT).show()
             return
         }
-
-        if (selectedCategory == null) {
-            Toast.makeText(this, "Please select an event category", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val parsedDate = DateUtils.parseDate(eventDate)
-        val eventTimestamp = parsedDate?.let { com.google.firebase.Timestamp(it) } ?: com.google.firebase.Timestamp.now()
 
         val event = Event(
             name = eventName,
             description = eventDescription,
-            date = eventTimestamp,
-            time = eventTime,
+            date = Timestamp(selectedDate.time),
+            time = eventTimeStr,
             location = eventLocation,
-            category = selectedCategory.name,
-            imageUrls = emptyList()
+            category = selectedCategory!!,
+            // The following fields are not in the layout, using default values
+            maxAttendees = 100,
+            ticketPrice = 0.0,
+            contactEmail = "default@email.com",
+            contactPhone = "0000000000"
         )
 
-        viewModel.saveEvent(event, selectedImages)
-    }
-
-
-    private fun getSelectedCategory(): EventCategory? {
-        for (i in 0 until binding.chipGroupCategories.childCount) {
-            val chip = binding.chipGroupCategories.getChildAt(i) as Chip
-            if (chip.isChecked) {
-                return chip.tag as EventCategory
-            }
-        }
-        return null
-    }
-
-    private fun updateImageCountDisplay() {
-        binding.textViewImageCount.text = "${selectedImages.size} images selected"
+        viewModel.saveEvent(event, selectedImageUris)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -239,15 +218,31 @@ class AddEventActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            R.id.home -> {
+            android.R.id.home -> {
                 finish()
                 true
             }
-            R.id.action_save_draft -> {
-                // Implement save as draft functionality
+            R.id.action_clear_fields -> {
+                clearAllFields()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun clearAllFields() {
+        binding.apply {
+            editTextEventName.text?.clear()
+            editTextEventDescription.text?.clear()
+            editTextEventLocation.text?.clear()
+            editTextEventDate.text?.clear()
+            editTextEventTime.text?.clear()
+            chipGroupCategories.clearCheck()
+            selectedCategory = null
+            selectedImageUris.clear()
+            imageAdapter.notifyDataSetChanged()
+            updateImagePreviewVisibility()
+        }
+        Toast.makeText(this, "Fields cleared", Toast.LENGTH_SHORT).show()
     }
 }

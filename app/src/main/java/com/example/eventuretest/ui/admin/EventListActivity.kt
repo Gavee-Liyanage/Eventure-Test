@@ -5,11 +5,10 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.eventuretest.ui.admin.AdminEventDetailActivity
 import com.example.eventuretest.R
 import com.example.eventuretest.databinding.ActivityEventListBinding
 import com.example.eventuretest.data.models.EventCategory
@@ -17,11 +16,13 @@ import com.example.eventuretest.ui.adapters.AdminEventListAdapter
 import com.example.eventuretest.utils.AdminConstants
 import com.example.eventuretest.viewmodels.AdminEventListViewModel
 import com.google.android.material.chip.Chip
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class EventListActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityEventListBinding
-    private lateinit var viewModel: AdminEventListViewModel
+    private val viewModel: AdminEventListViewModel by viewModels()
     private lateinit var eventAdapter: AdminEventListAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +31,7 @@ class EventListActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
-        setupViewModel()
+        // Remove setupViewModel() call or replace it with initialization code
         setupRecyclerView()
         setupFilterChips()
         setupClickListeners()
@@ -38,6 +39,7 @@ class EventListActivity : AppCompatActivity() {
 
         viewModel.loadEvents()
     }
+
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
@@ -47,9 +49,6 @@ class EventListActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViewModel() {
-        viewModel = ViewModelProvider(this)[AdminEventListViewModel::class.java]
-    }
 
     private fun setupRecyclerView() {
         eventAdapter = AdminEventListAdapter(

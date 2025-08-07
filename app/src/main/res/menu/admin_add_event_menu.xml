@@ -10,4 +10,8 @@
         android:title="Home"
         android:icon="@drawable/baseline_home_24"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_clear_fields"
+        android:title="Clear All"
+        app:showAsAction="ifRoom" />
 </menu>
