@@ -91,7 +91,6 @@ class EventManagementViewModel(
             }
         }
     }
-
     // Implement duplicateEvent in repository first if needed, then:
 
     fun duplicateEvent(eventId: String) {

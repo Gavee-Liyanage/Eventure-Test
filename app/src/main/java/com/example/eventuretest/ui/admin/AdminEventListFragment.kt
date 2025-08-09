@@ -2,6 +2,7 @@ package com.example.eventuretest.ui.admin
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,6 +24,10 @@ class AdminEventListFragment : Fragment() {
 
     private lateinit var viewModel: AdminEventListViewModel
     private lateinit var eventAdapter: AdminEventAdapter
+
+    companion object {
+        private const val TAG = "AdminEventListFragment"
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,14 +57,34 @@ class AdminEventListFragment : Fragment() {
     private fun setupRecyclerView() {
         eventAdapter = AdminEventAdapter(
             onEventClick = { event ->
-                val intent = Intent(requireContext(), AdminEventDetailActivity::class.java)
-                intent.putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
-                startActivity(intent)
+                try {
+                    Log.d(TAG, "Event clicked: ${event.name} with ID: ${event.id}")
+                    val intent = Intent(requireContext(), AdminEventDetailActivity::class.java).apply {
+                        putExtra("eventId", event.id)
+                        putExtra("EVENT_ID", event.id)
+                        putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error opening event details", e)
+                    Toast.makeText(requireContext(), "Error opening event details: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             },
             onEditClick = { event ->
-                val intent = Intent(requireContext(), EditEventActivity::class.java)
-                intent.putExtra(EditEventActivity.EXTRA_EVENT_ID, event.id)
-                startActivity(intent)
+                try {
+                    Log.d(TAG, "Edit clicked for event: ${event.name} with ID: ${event.id}")
+                    val intent = Intent(requireContext(), EditEventActivity::class.java).apply {
+                        putExtra("eventId", event.id)
+                        putExtra("EVENT_ID", event.id)
+                        putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error opening edit event", e)
+                    Toast.makeText(requireContext(), "Error opening edit screen: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             },
             onDeleteClick = { event ->
                 showDeleteConfirmationDialog(event.id, event.name)
@@ -73,30 +98,35 @@ class AdminEventListFragment : Fragment() {
     }
 
     private fun setupFilterChips() {
+        // Clear existing chips
+        binding.chipGroupFilters.removeAllViews()
+
         // Add "All" chip
-        val allChip = Chip(requireContext())
-        allChip.text = "All"
-        allChip.isCheckable = true
-        allChip.isChecked = true
-        allChip.tag = null
-        allChip.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                clearOtherChips(allChip)
-                viewModel.filterEvents(null)
+        val allChip = Chip(requireContext()).apply {
+            text = "All"
+            isCheckable = true
+            isChecked = true
+            tag = null
+            setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    clearOtherChips(this)
+                    viewModel.filterEvents(null)
+                }
             }
         }
         binding.chipGroupFilters.addView(allChip)
 
         // Add category chips
         EventCategory.values().forEach { category ->
-            val chip = Chip(requireContext())
-            chip.text = category.displayName
-            chip.isCheckable = true
-            chip.tag = category
-            chip.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked) {
-                    clearOtherChips(chip)
-                    viewModel.filterEvents(category)
+            val chip = Chip(requireContext()).apply {
+                text = category.displayName
+                isCheckable = true
+                tag = category
+                setOnCheckedChangeListener { _, isChecked ->
+                    if (isChecked) {
+                        clearOtherChips(this)
+                        viewModel.filterEvents(category)
+                    }
                 }
             }
             binding.chipGroupFilters.addView(chip)
@@ -113,9 +143,16 @@ class AdminEventListFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        binding.fabAddEvent.setOnClickListener {
-            val intent = Intent(requireContext(), AddEventActivity::class.java)
-            startActivity(intent)
+        binding.fabAddEvent?.setOnClickListener {
+            try {
+                val intent = Intent(requireContext(), AddEventActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Error opening add event", e)
+                Toast.makeText(requireContext(), "Error opening add event screen", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -125,18 +162,21 @@ class AdminEventListFragment : Fragment() {
 
     private fun observeViewModel() {
         viewModel.events.observe(viewLifecycleOwner) { events ->
+            Log.d(TAG, "Events updated: ${events.size} events")
             eventAdapter.submitList(events)
             updateEmptyState(events.isEmpty())
         }
 
         viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            Log.d(TAG, "Loading state: $isLoading")
             binding.swipeRefreshLayout.isRefreshing = isLoading
-            binding.progressBar.visibility = if (isLoading && eventAdapter.itemCount == 0)
+            binding.progressBar?.visibility = if (isLoading && eventAdapter.itemCount == 0)
                 View.VISIBLE else View.GONE
         }
 
         viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
             if (message.isNotEmpty()) {
+                Log.e(TAG, "Error message: $message")
                 Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
             }
         }
@@ -152,7 +192,7 @@ class AdminEventListFragment : Fragment() {
     }
 
     private fun updateEmptyState(isEmpty: Boolean) {
-        binding.layoutEmptyEvents.visibility = if (isEmpty) View.VISIBLE else View.GONE
+        binding.layoutEmptyEvents?.visibility = if (isEmpty) View.VISIBLE else View.GONE
         binding.recyclerViewEvents.visibility = if (!isEmpty) View.VISIBLE else View.GONE
     }
 
@@ -165,6 +205,13 @@ class AdminEventListFragment : Fragment() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh events when fragment becomes visible again
+        Log.d(TAG, "Fragment resumed, refreshing events")
+        viewModel.refreshEvents()
     }
 
     override fun onDestroyView() {

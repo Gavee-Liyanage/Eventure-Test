@@ -1,5 +1,6 @@
 package com.example.eventuretest.ui.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -9,6 +10,8 @@ import com.bumptech.glide.Glide
 import com.example.eventuretest.R
 import com.example.eventuretest.databinding.ItemAdminEventCardBinding
 import com.example.eventuretest.data.models.Event
+import com.example.eventuretest.ui.admin.AdminEventDetailActivity
+import com.example.eventuretest.ui.admin.EditEventActivity
 import com.example.eventuretest.utils.DateUtils
 
 class AdminEventAdapter(
@@ -39,7 +42,6 @@ class AdminEventAdapter(
                 EventName.text = event.name
                 EventDescription.text = event.description
                 EventLocation.text = event.location
-                chipCategory.text = event.category
 
                 val formattedDateTime = "${DateUtils.formatDate(event.date.toDate())} • ${event.time}"
                 EventDateTime.text = formattedDateTime
@@ -55,7 +57,7 @@ class AdminEventAdapter(
                 chipCategory.text = categoryDisplayName
 
                 // Set category color
-                val categoryColor = when (event.category) {
+                val categoryColor = when (event.category.uppercase()) {
                     "MUSICAL" -> R.color.category_musical
                     "SPORTS" -> R.color.category_sports
                     "FOOD" -> R.color.category_food
@@ -63,7 +65,6 @@ class AdminEventAdapter(
                     else -> R.color.category_default
                 }
                 chipCategory.setChipBackgroundColorResource(categoryColor)
-                chipCategory.text = event.category
 
                 // Load first image if available
                 if (event.imageUrls.isNotEmpty()) {
@@ -85,10 +86,42 @@ class AdminEventAdapter(
                     )
                 )
 
-                // Click listeners
-                root.setOnClickListener { onEventClick(event) }
-                btnEdit.setOnClickListener { onEditClick(event) }
-                btnEdit.setOnClickListener { onDeleteClick(event) }
+                // Click listeners - FIXED
+                root.setOnClickListener {
+                    try {
+                        onEventClick(event) // Use callback instead of direct intent
+                    } catch (e: Exception) {
+                        // Fallback to direct intent if callback fails
+                        val context = binding.root.context
+                        val intent = Intent(context, AdminEventDetailActivity::class.java).apply {
+                            putExtra("eventId", event.id)
+                            putExtra("EVENT_ID", event.id)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        context.startActivity(intent)
+                    }
+                }
+
+                // FIXED: Edit button click listener
+                btnEdit.setOnClickListener {
+                    try {
+                        onEditClick(event) // Use callback instead of direct intent
+                    } catch (e: Exception) {
+                        // Fallback to direct intent if callback fails
+                        val context = binding.root.context
+                        val intent = Intent(context, EditEventActivity::class.java).apply {
+                            putExtra("eventId", event.id)
+                            putExtra("EVENT_ID", event.id)
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        }
+                        context.startActivity(intent)
+                    }
+                }
+
+                // FIXED: Delete button click listener (was incorrectly mapped to edit button)
+                btnDelete?.setOnClickListener {
+                    onDeleteClick(event)
+                }
             }
         }
     }

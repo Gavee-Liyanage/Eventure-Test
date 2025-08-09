@@ -13,7 +13,6 @@ import com.example.eventuretest.R
 import com.example.eventuretest.databinding.ActivityEventListBinding
 import com.example.eventuretest.data.models.EventCategory
 import com.example.eventuretest.ui.adapters.AdminEventListAdapter
-import com.example.eventuretest.utils.AdminConstants
 import com.example.eventuretest.viewmodels.AdminEventListViewModel
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,7 +30,6 @@ class EventListActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupToolbar()
-        // Remove setupViewModel() call or replace it with initialization code
         setupRecyclerView()
         setupFilterChips()
         setupClickListeners()
@@ -39,7 +37,6 @@ class EventListActivity : AppCompatActivity() {
 
         viewModel.loadEvents()
     }
-
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
@@ -49,18 +46,13 @@ class EventListActivity : AppCompatActivity() {
         }
     }
 
-
     private fun setupRecyclerView() {
         eventAdapter = AdminEventListAdapter(
             onEventClick = { event ->
-                val intent = Intent(this, AdminEventDetailActivity::class.java)
-                intent.putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
-                startActivity(intent)
+                // This callback is now handled within the adapter for better error handling
             },
             onEditClick = { event ->
-                val intent = Intent(this, EditEventActivity::class.java)
-                intent.putExtra(EditEventActivity.EXTRA_EVENT_ID, event.id)
-                startActivity(intent)
+                // This callback is now handled within the adapter for better error handling
             },
             onDeleteClick = { event ->
                 showDeleteConfirmationDialog(event.id, event.name)
@@ -70,10 +62,15 @@ class EventListActivity : AppCompatActivity() {
         binding.recyclerViewEvents.apply {
             layoutManager = LinearLayoutManager(this@EventListActivity)
             adapter = eventAdapter
+            // Add item decoration for better spacing if needed
+            // addItemDecoration(DividerItemDecoration(this@EventListActivity, DividerItemDecoration.VERTICAL))
         }
     }
 
     private fun setupFilterChips() {
+        // Clear any existing chips
+        binding.chipGroupFilters.removeAllViews()
+
         // Add "All" chip
         val allChip = Chip(this)
         allChip.text = "All"
@@ -115,8 +112,14 @@ class EventListActivity : AppCompatActivity() {
 
     private fun setupClickListeners() {
         binding.fabAddEvent.setOnClickListener {
-            val intent = Intent(this, AddEventActivity::class.java)
-            startActivity(intent)
+            try {
+                val intent = Intent(this, AddEventActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Error opening add event screen: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -174,16 +177,21 @@ class EventListActivity : AppCompatActivity() {
         val searchItem = menu?.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as? SearchView
 
-        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
+        searchView?.apply {
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    return false
+                }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.searchEvents(newText ?: "")
-                return true
-            }
-        })
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    viewModel.searchEvents(newText ?: "")
+                    return true
+                }
+            })
+
+            // Add placeholder text
+            queryHint = "Search events..."
+        }
 
         return true
     }
@@ -210,8 +218,12 @@ class EventListActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onResume() {
         super.onResume()
+        // Refresh events when returning to this activity
         viewModel.refreshEvents()
     }
+
+
 }

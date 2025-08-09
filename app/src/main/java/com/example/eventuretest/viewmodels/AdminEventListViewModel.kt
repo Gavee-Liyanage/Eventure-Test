@@ -138,28 +138,4 @@ class AdminEventListViewModel @Inject constructor(
             }
         }
     }
-
-    fun getEventStatistics(): Map<String, Int> {
-        val now = System.currentTimeMillis()
-
-        val upcomingCount = allEvents.count { event ->
-            try {
-                val eventDate = event.date.toDate().time
-                eventDate >= now
-            } catch (e: Exception) {
-                false
-            }
-        }
-        val pastCount = allEvents.size - upcomingCount
-
-        return mapOf(
-            "total" to allEvents.size,
-            "upcoming" to upcomingCount,
-            "past" to pastCount,
-            "musical" to allEvents.count { it.category == EventCategory.MUSICAL.name },
-            "sports" to allEvents.count { it.category == EventCategory.SPORTS.name },
-            "food" to allEvents.count { it.category == EventCategory.FOOD.name },
-            "art" to allEvents.count { it.category == EventCategory.ART.name }
-        )
-    }
 }
