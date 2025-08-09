@@ -52,7 +52,7 @@
                 android:layout_gravity="bottom|end"
                 android:contentDescription="@string/add_event"
                 android:src="@drawable/baseline_add_circle_24"
-                android:backgroundTint="@color/admin_accent"
+                android:backgroundTint="@color/admin_theme"
                 app:tint="@android:color/white"
                 tools:ignore="MissingConstraints" />
 

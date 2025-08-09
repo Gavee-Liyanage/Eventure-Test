@@ -1,10 +1,7 @@
 package com.example.eventuretest.data.remote
 
-
 import com.example.eventuretest.utils.AdminConstants
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,17 +18,22 @@ class AdminFirestoreOperations @Inject constructor(
             // Get total events count
             val totalEvents = eventsCollection.get().await().size()
 
-            // Get events by category
-            val categories = listOf("Musical", "Sports", "Food", "Art")
+            // Get events by category - using title case to match UI expectations
+            val categories = mapOf(
+                "Musical" to "MUSICAL",
+                "Sports" to "SPORTS",
+                "Food" to "FOOD",
+                "Art" to "ART"
+            )
             val categoryData = mutableMapOf<String, Int>()
 
-            categories.forEach { category ->
+            categories.forEach { (displayName, firestoreValue) ->
                 val count = eventsCollection
-                    .whereEqualTo("category", category)
+                    .whereEqualTo("category", firestoreValue)
                     .get()
                     .await()
                     .size()
-                categoryData[category] = count
+                categoryData[displayName] = count
             }
 
             // Get active events count
@@ -41,18 +43,9 @@ class AdminFirestoreOperations @Inject constructor(
                 .await()
                 .size()
 
-            // Get recent events (last 30 days)
-            val thirtyDaysAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000)
-            val recentEvents = eventsCollection
-                .whereGreaterThan("createdAt", com.google.firebase.Timestamp(thirtyDaysAgo / 1000, 0))
-                .get()
-                .await()
-                .size()
-
             val analytics = mapOf(
                 "totalEvents" to totalEvents,
                 "activeEvents" to activeEvents,
-                "recentEvents" to recentEvents,
                 "categoryData" to categoryData
             )
 

@@ -51,10 +51,7 @@ class AdminMainActivity : AppCompatActivity() {
             startActivity(Intent(this, EventListActivity::class.java))
         }
 
-        binding.cardAnalytics.setOnClickListener {
-            Log.d("AdminMain", "Analytics clicked")
-            // TODO: Implement analytics activity and navigation
-        }
+
 
         binding.btnRefresh.setOnClickListener {
             Log.d("AdminMain", "Refresh clicked")
@@ -69,14 +66,6 @@ class AdminMainActivity : AppCompatActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            viewModel.adminUser.collect { admin ->
-                admin?.let {
-                    binding.AdminName.text = "Welcome, ${it.name}"
-                    binding.AdminEmail.text = it.email
-                }
-            }
-        }
 
         lifecycleScope.launch {
             viewModel.isLoading.collect { isLoading ->
@@ -101,7 +90,6 @@ class AdminMainActivity : AppCompatActivity() {
         binding.apply {
             TotalEvents.text = (analytics["totalEvents"] as? Number)?.toString() ?: "0"
             ActiveEvents.text = (analytics["activeEvents"] as? Number)?.toString() ?: "0"
-            RecentEvents.text = (analytics["recentEvents"] as? Number)?.toString() ?: "0"
 
             val categoryData = analytics["categoryData"] as? Map<String, Number>
             categoryData?.let { data ->

@@ -1,14 +1,19 @@
 package com.example.eventuretest.ui.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.eventuretest.R
 import com.example.eventuretest.databinding.ItemAdminEventListBinding
+import com.example.eventuretest.ui.admin.AdminEventDetailActivity
 import com.example.eventuretest.data.models.Event
+import com.example.eventuretest.ui.admin.EditEventActivity
+import com.example.eventuretest.utils.AdminConstants
 import com.example.eventuretest.utils.DateUtils
 
 class AdminEventListAdapter(
@@ -39,7 +44,6 @@ class AdminEventListAdapter(
                 EventName.text = event.name
                 EventDate.text = "${event.date} at ${event.time}"
                 EventLocation.text = event.location
-                chipCategory.text = event.category
 
                 // Load thumbnail image
                 if (event.imageUrls.isNotEmpty()) {
@@ -62,17 +66,22 @@ class AdminEventListAdapter(
                 }
                 chipCategory.text = categoryDisplayName
 
-                // Set category indicator color
-                val categoryColor = when (event.category) {
-                    "MUSICAL" -> R.color.category_musical
-                    "SPORTS" -> R.color.category_sports
+                // Set category indicator color and chip background
+                val categoryColor = when (event.category.uppercase()) {
+                    "MUSICAL" -> R.color.admin_theme
+                    "SPORTS" -> R.color.admin_theme
                     "FOOD" -> R.color.category_food
-                    "ART" -> R.color.category_art
+                    "ART" -> R.color.admin_theme
                     else -> R.color.category_default
                 }
+
+                // Set category indicator color
                 viewCategoryIndicator.setBackgroundColor(
                     binding.root.context.getColor(categoryColor)
                 )
+
+                // Set chip background color
+                chipCategory.setChipBackgroundColorResource(categoryColor)
 
                 // Set event status
                 val isUpcoming = DateUtils.isEventUpcoming(event.date)
@@ -86,17 +95,58 @@ class AdminEventListAdapter(
                 // Show participant count if available
                 textViewParticipantCount.text = "${event.participantCount ?: 0} participants"
 
-                // Click listeners
-                root.setOnClickListener { onEventClick(event) }
-                buttonEdit.setOnClickListener {
-                    it.isEnabled = false
-                    onEditClick(event)
-                    it.postDelayed({ it.isEnabled = true }, 1000)
+                // Main click listener - Fixed: Remove duplicate callback and ensure proper navigation
+                root.setOnClickListener {
+                    try {
+                        val context = binding.root.context
+                        val intent = Intent(context, AdminEventDetailActivity::class.java).apply {
+                            putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // Show error message
+                        Toast.makeText(
+                            binding.root.context,
+                            "Failed to open event details: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                        // Fallback callback if needed
+                        onEventClick(event)
+                    }
                 }
-                buttonDelete.setOnClickListener {
-                    it.isEnabled = false
-                    onDeleteClick(event)
-                    it.postDelayed({ it.isEnabled = true }, 1000)
+
+                // Edit button click - Fixed: Add debouncing
+                buttonEdit.setOnClickListener { view ->
+                    view.isEnabled = false
+                    try {
+                        val context = binding.root.context
+                        val intent = Intent(context, EditEventActivity::class.java).apply {
+                            putExtra(AdminConstants.EXTRA_EVENT_ID, event.id)
+                        }
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        Toast.makeText(binding.root.context, "Failed to open edit event: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                    view.postDelayed({ view.isEnabled = true }, 1000)
+                }
+
+
+                // Delete button click - Fixed: Add debouncing
+                buttonDelete.setOnClickListener { view ->
+                    view.isEnabled = false
+                    try {
+                        onDeleteClick(event)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    view.postDelayed({ view.isEnabled = true }, 1000)
+                }
+
+                // Menu button click (if you want to add menu functionality)
+                btnMenu.setOnClickListener {
+                    // Add popup menu functionality here if needed
                 }
             }
         }

@@ -34,48 +34,42 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
-            <!-- Admin Info Card -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Welcome Admin Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
+                android:layout_height="178dp"
+                android:layout_marginBottom="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:id="@+id/profile_image"
+                    android:layout_width="229dp"
+                    android:layout_height="178dp"
+                    android:layout_marginEnd="16dp"
+                    android:padding="4dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/ic_admin" />
+
+                <TextView
+                    android:id="@+id/welcome_text"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/AdminName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Welcome, Admin"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/AdminEmail"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="admin@eventfinder.com"
-                        android:textColor="@android:color/darker_gray"
-                        android:textSize="14sp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
+                    android:text="Welcome! Admin"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
 
             <!-- Quick Actions -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="20dp"
                 android:weightSum="2">
 
                 <com.google.android.material.card.MaterialCardView
@@ -88,7 +82,7 @@
                     android:focusable="true"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/colorPrimary">
+                    app:cardBackgroundColor="@color/admin_theme">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -125,7 +119,7 @@
                     android:focusable="true"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    app:cardBackgroundColor="@color/colorPrimary">
+                    app:cardBackgroundColor="@color/admin_theme">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -154,11 +148,11 @@
 
             </LinearLayout>
 
-            <!-- Statistics Card -->
+            <!-- Event Statistics Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="35dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
 
@@ -166,7 +160,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="16dp"
+                    android:background="#FF9900">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -180,7 +175,8 @@
                             android:layout_weight="1"
                             android:text="Event Statistics"
                             android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:textColor="@color/admin_surface"/>
 
                         <ImageView
                             android:id="@+id/btnRefresh"
@@ -200,7 +196,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
                         android:orientation="horizontal"
-                        android:weightSum="3">
+                        android:weightSum="2">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -214,7 +210,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@color/colorPrimary"
+                                android:textColor="@color/admin_surface"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -222,7 +218,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Total Events"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
@@ -238,7 +235,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@android:color/holo_green_dark"
+                                android:textColor="@color/admin_text_primary"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -246,33 +243,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Active Events"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:gravity="center"
-                            android:orientation="vertical">
-
-                            <TextView
-                                android:id="@+id/RecentEvents"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0"
-                                android:textColor="@android:color/holo_blue_dark"
-                                android:textSize="24sp"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Recent (30d)"
-                                android:textSize="12sp" />
-
-                        </LinearLayout>
 
                     </LinearLayout>
 
@@ -284,7 +259,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="35dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="4dp">
 
@@ -292,14 +267,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="16dp"
+                    android:background="@color/admin_theme">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Events by Category"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:textColor="@color/admin_surface"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -319,7 +296,7 @@
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:src="@drawable/baseline_music_video_24"
-                                app:tint="@android:color/holo_purple" />
+                                app:tint="@color/admin_text_primary" />
 
                             <TextView
                                 android:id="@+id/MusicalCount"
@@ -334,7 +311,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Musical"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
@@ -349,7 +327,7 @@
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:src="@drawable/baseline_sports_basketball_24"
-                                app:tint="@android:color/holo_orange_dark" />
+                                app:tint="@color/admin_text_primary" />
 
                             <TextView
                                 android:id="@+id/SportsCount"
@@ -364,7 +342,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Sports"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
@@ -379,7 +358,7 @@
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:src="@drawable/baseline_fastfood_24"
-                                app:tint="@android:color/holo_red_dark" />
+                                app:tint="@color/admin_surface" />
 
                             <TextView
                                 android:id="@+id/FoodCount"
@@ -394,7 +373,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Food"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
@@ -409,7 +389,7 @@
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:src="@drawable/baseline_color_lens_24"
-                                app:tint="@android:color/holo_green_dark" />
+                                app:tint="@color/admin_surface" />
 
                             <TextView
                                 android:id="@+id/ArtCount"
@@ -424,54 +404,12 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Art"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:textColor="@color/admin_surface"/>
 
                         </LinearLayout>
 
                     </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Analytics Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardAnalytics"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginTop="16dp"
-                android:clickable="true"
-                android:focusable="true"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/baseline_bar_chart_24"
-                        app:tint="@color/colorPrimary" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_weight="1"
-                        android:text="View Detailed Analytics"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <ImageView
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@drawable/baseline_keyboard_arrow_right_24"
-                        app:tint="@android:color/darker_gray" />
 
                 </LinearLayout>
 

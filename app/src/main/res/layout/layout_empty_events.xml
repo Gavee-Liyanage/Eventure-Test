@@ -17,7 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_chainStyle="packed"
-        app:tint="@color/admin_text_secondary" />
+        app:tint="@color/admin_text_primary" />
 
     <TextView
         android:id="@+id/tvEmptyTitle"
